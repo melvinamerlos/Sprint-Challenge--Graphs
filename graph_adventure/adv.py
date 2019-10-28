@@ -18,10 +18,101 @@ roomGraph={494: [(1, 8), {'e': 457}], 492: [(1, 20), {'e': 400}], 493: [(2, 5), 
 world.loadGraph(roomGraph)
 world.printRooms()
 player = Player("Name", world.startingRoom)
+player.currentRoom = world.startingRoom
+playerId = player.currentRoom.id
 
+# a collection of objects that supports fast last-in, first-out (LIFO) semantics for inserts and deletes
+class Stack():
+    def __init__(self):
+        self.stack = []
+    def push(self, value):
+        self.stack.append(value)
+    def pop(self):
+        if self.size() > 0:
+            return self.stack.pop()
+        else:
+            return None
+    def size(self):
+        return len(self.stack)
+
+#use depth first search to traverse through the map
+#result should look like ===> {
+ # 0: {'n': '?', 's': 5, 'w': '?', 'e': '?'},
+#  5: {'n': 0, 's': '?', 'e': '?'}
+
+def worldTraverse(playerId):
+    '''
+        Need a Stack- check
+        Need a visited set - check
+        Push the starting room into the Stack - check
+        Need a Checked list - check
+        Update visited with starting room and directions
+        While Stack is not empty
+        Pop the last item in Stack
+        if value is not in Checked
+        append value to checked
+        loop through exits for value
+        if value is greater than 1
+        update visited with value and its exits
+        next path starts with current path
+        append value to path
+        push path into Storage
+    '''
+
+# bidirectional case
+def oppositeCardinal(direc):
+    if direc is 'n':
+        return 's'
+    elif direc is 's':
+        return 'n'
+    elif direc is 'e':
+        return 'w'
+    elif direc is 'w':
+        return 'e'
+
+# visited set (dictionary)?
+visited = {}
+
+# set key to starting room id with value equal to exits ex. 0: {n, e, s, w}
+visited[player.currentRoom.id] = player.currentRoom.getExits()
+print(visited)
+
+# have checked list for bidirectional travel back to the start of the map
+checked = []
+
+# track the steps to completion in order to pass tests/ set to traversalPath var
+count = []
+
+# loop while length of visited is less than 500
+while len(list(visited)) < 499:
+    # if our current room has not been flagged, put it in visited
+    if player.currentRoom.id not in visited:
+        visited[player.currentRoom.id] = player.currentRoom.getExits()
+        visited[player.currentRoom.id].remove(checked[-1])
+
+    # at end of a path, reverse and go until available path
+    while len(visited[player.currentRoom.id]) is 0 and len(checked) > 0:
+        # get last item on checked
+        back = checked.pop()
+
+        # append next available path to count
+        count.append(back)
+
+        # go to that room
+        player.travel(back)
+
+    # take a step
+    step = visited[player.currentRoom.id].pop(0)
+
+    # append the reversed direction to checked using oppositeCardinal function
+    checked.append(oppositeCardinal(step))
+
+    # add direction to count
+    count.append(step)
+    player.travel(step)
 
 # FILL THIS IN
-traversalPath = ['n', 's']
+traversalPath = count
 
 
 # TRAVERSAL TEST
